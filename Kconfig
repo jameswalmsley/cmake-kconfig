@@ -1,0 +1,8 @@
+mainmenu "Project Configuration"
+
+config TEST_OPTION
+    bool "Test Option"
+    help
+        Test option description
+
+
