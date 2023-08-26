@@ -32,26 +32,26 @@
 # is the same as
 # add_subdirectory_ifdef(CONFIG_SERIAL serial)
 function(add_subdirectory_if_kconfig dir)
-  string(TOUPPER config_${dir} UPPER_CASE_CONFIG)
-  add_subdirectory_ifdef(${UPPER_CASE_CONFIG} ${dir})
+    string(TOUPPER config_${dir} UPPER_CASE_CONFIG)
+    add_subdirectory_ifdef(${UPPER_CASE_CONFIG} ${dir})
 endfunction()
 
 function(target_sources_if_kconfig target scope item)
-  get_filename_component(item_basename ${item} NAME_WE)
-  string(TOUPPER CONFIG_${item_basename} UPPER_CASE_CONFIG)
-  target_sources_ifdef(${UPPER_CASE_CONFIG} ${target} ${scope} ${item})
+    get_filename_component(item_basename ${item} NAME_WE)
+    string(TOUPPER CONFIG_${item_basename} UPPER_CASE_CONFIG)
+    target_sources_ifdef(${UPPER_CASE_CONFIG} ${target} ${scope} ${item})
 endfunction()
 
 function(zephyr_library_sources_if_kconfig item)
-  get_filename_component(item_basename ${item} NAME_WE)
-  string(TOUPPER CONFIG_${item_basename} UPPER_CASE_CONFIG)
-  zephyr_library_sources_ifdef(${UPPER_CASE_CONFIG} ${item})
+    get_filename_component(item_basename ${item} NAME_WE)
+    string(TOUPPER CONFIG_${item_basename} UPPER_CASE_CONFIG)
+    zephyr_library_sources_ifdef(${UPPER_CASE_CONFIG} ${item})
 endfunction()
 
 function(zephyr_sources_if_kconfig item)
-  get_filename_component(item_basename ${item} NAME_WE)
-  string(TOUPPER CONFIG_${item_basename} UPPER_CASE_CONFIG)
-  zephyr_sources_ifdef(${UPPER_CASE_CONFIG} ${item})
+    get_filename_component(item_basename ${item} NAME_WE)
+    string(TOUPPER CONFIG_${item_basename} UPPER_CASE_CONFIG)
+    zephyr_sources_ifdef(${UPPER_CASE_CONFIG} ${item})
 endfunction()
 
 # 2.2 Misc
@@ -63,38 +63,38 @@ endfunction()
 # CMake namespace. List all created variable names in the 'keys'
 # output variable if present.
 function(import_kconfig prefix kconfig_fragment)
-  # Parse the lines prefixed with 'prefix' in ${kconfig_fragment}
-  file(
-    STRINGS
-    ${kconfig_fragment}
-    DOT_CONFIG_LIST
-    REGEX "^${prefix}"
-    ENCODING "UTF-8"
-  )
+    # Parse the lines prefixed with 'prefix' in ${kconfig_fragment}
+    file(
+        STRINGS
+        ${kconfig_fragment}
+        DOT_CONFIG_LIST
+        REGEX "^${prefix}"
+        ENCODING "UTF-8"
+    )
 
-  foreach (CONFIG ${DOT_CONFIG_LIST})
-    # CONFIG could look like: CONFIG_NET_BUF=y
+    foreach (CONFIG ${DOT_CONFIG_LIST})
+        # CONFIG could look like: CONFIG_NET_BUF=y
 
-    # Match the first part, the variable name
-    string(REGEX MATCH "[^=]+" CONF_VARIABLE_NAME ${CONFIG})
+        # Match the first part, the variable name
+        string(REGEX MATCH "[^=]+" CONF_VARIABLE_NAME ${CONFIG})
 
-    # Match the second part, variable value
-    string(REGEX MATCH "=(.+$)" CONF_VARIABLE_VALUE ${CONFIG})
-    # The variable name match we just did included the '=' symbol. To just get the
-    # part on the RHS we use match group 1
-    set(CONF_VARIABLE_VALUE ${CMAKE_MATCH_1})
+        # Match the second part, variable value
+        string(REGEX MATCH "=(.+$)" CONF_VARIABLE_VALUE ${CONFIG})
+        # The variable name match we just did included the '=' symbol. To just get the
+        # part on the RHS we use match group 1
+        set(CONF_VARIABLE_VALUE ${CMAKE_MATCH_1})
 
-    if("${CONF_VARIABLE_VALUE}" MATCHES "^\"(.*)\"$") # Is surrounded by quotes
-      set(CONF_VARIABLE_VALUE ${CMAKE_MATCH_1})
-    endif()
+        if("${CONF_VARIABLE_VALUE}" MATCHES "^\"(.*)\"$") # Is surrounded by quotes
+            set(CONF_VARIABLE_VALUE ${CMAKE_MATCH_1})
+        endif()
 
-    set("${CONF_VARIABLE_NAME}" "${CONF_VARIABLE_VALUE}" PARENT_SCOPE)
-    list(APPEND keys "${CONF_VARIABLE_NAME}")
-  endforeach()
+        set("${CONF_VARIABLE_NAME}" "${CONF_VARIABLE_VALUE}" PARENT_SCOPE)
+        list(APPEND keys "${CONF_VARIABLE_NAME}")
+    endforeach()
 
-  foreach(outvar ${ARGN})
-    set(${outvar} "${keys}" PARENT_SCOPE)
-  endforeach()
+    foreach(outvar ${ARGN})
+        set(${outvar} "${keys}" PARENT_SCOPE)
+    endforeach()
 endfunction()
 
 ########################################################
@@ -111,26 +111,26 @@ endfunction()
 # e.g.
 #
 # if(CONFIG_FFT)
-#   zephyr_library_source(
-#     fft_32.c
-#     fft_utils.c
-#     )
+#     zephyr_library_source(
+#         fft_32.c
+#         fft_utils.c
+#         )
 # endif()
 #
 # Becomes
 #
 # zephyr_source_ifdef(
-#   CONFIG_FFT
-#   fft_32.c
-#   fft_utils.c
-#   )
+#     CONFIG_FFT
+#     fft_32.c
+#     fft_utils.c
+#     )
 #
 # More Generally
 # "<function-name>_ifdef(CONDITION args)"
 # Becomes
 # """
 # if(CONDITION)
-#   <function-name>(args)
+#     <function-name>(args)
 # endif()
 # """
 #
@@ -138,71 +138,71 @@ endfunction()
 # https://cmake.org/cmake/help/latest/manual/cmake-commands.7.html for
 # a list of available functions.
 function(add_subdirectory_ifdef feature_toggle dir)
-  if(${${feature_toggle}})
-    add_subdirectory(${dir})
-  endif()
+    if(${${feature_toggle}})
+        add_subdirectory(${dir})
+    endif()
 endfunction()
 
 function(target_sources_ifdef feature_toggle target scope item)
-  if(${${feature_toggle}})
-    target_sources(${target} ${scope} ${item} ${ARGN})
-  endif()
+    if(${${feature_toggle}})
+        target_sources(${target} ${scope} ${item} ${ARGN})
+    endif()
 endfunction()
 
 function(target_compile_definitions_ifdef feature_toggle target scope item)
-  if(${${feature_toggle}})
-    target_compile_definitions(${target} ${scope} ${item} ${ARGN})
-  endif()
+    if(${${feature_toggle}})
+        target_compile_definitions(${target} ${scope} ${item} ${ARGN})
+    endif()
 endfunction()
 
 function(target_include_directories_ifdef feature_toggle target scope item)
-  if(${${feature_toggle}})
-    target_include_directories(${target} ${scope} ${item} ${ARGN})
-  endif()
+    if(${${feature_toggle}})
+        target_include_directories(${target} ${scope} ${item} ${ARGN})
+    endif()
 endfunction()
 
 function(target_link_libraries_ifdef feature_toggle target item)
-  if(${${feature_toggle}})
-    target_link_libraries(${target} ${item} ${ARGN})
-  endif()
+    if(${${feature_toggle}})
+        target_link_libraries(${target} ${item} ${ARGN})
+    endif()
 endfunction()
 
 function(add_compile_option_ifdef feature_toggle option)
-  if(${${feature_toggle}})
-    add_compile_options(${option})
-  endif()
+    if(${${feature_toggle}})
+        add_compile_options(${option})
+    endif()
 endfunction()
 
 function(target_compile_option_ifdef feature_toggle target scope option)
-  if(${feature_toggle})
-    target_compile_options(${target} ${scope} ${option})
-  endif()
+    if(${feature_toggle})
+        target_compile_options(${target} ${scope} ${option})
+    endif()
 endfunction()
 
 function(target_cc_option_ifdef feature_toggle target scope option)
-  if(${feature_toggle})
-    target_cc_option(${target} ${scope} ${option})
-  endif()
+    if(${feature_toggle})
+        target_cc_option(${target} ${scope} ${option})
+    endif()
 endfunction()
 
 macro(list_append_ifdef feature_toggle list)
-  if(${${feature_toggle}})
-    list(APPEND ${list} ${ARGN})
-  endif()
+    if(${${feature_toggle}})
+        list(APPEND ${list} ${ARGN})
+    endif()
 endmacro()
 
 # 3.2. *_ifndef
 # See 3.1 *_ifdef
 function(set_ifndef variable value)
-  if(NOT ${variable})
-    set(${variable} ${value} ${ARGN} PARENT_SCOPE)
-  endif()
+    if(NOT ${variable})
+        set(${variable} ${value} ${ARGN} PARENT_SCOPE)
+    endif()
 endfunction()
 
 function(target_cc_option_ifndef feature_toggle target scope option)
-  if(NOT ${feature_toggle})
-    target_cc_option(${target} ${scope} ${option})
-  endif()
+    if(NOT ${feature_toggle})
+        target_cc_option(${target} ${scope} ${option})
+    endif()
 endfunction()
 
 # 3.3. *_option Compiler-compatibility checks
@@ -224,116 +224,116 @@ endfunction()
 # check_compiler_flag(C "-Wall" my_check)
 # print(my_check) # my_check is now 1
 function(check_compiler_flag lang option ok)
-  if(NOT DEFINED CMAKE_REQUIRED_QUIET)
-    set(CMAKE_REQUIRED_QUIET 1)
-  endif()
+    if(NOT DEFINED CMAKE_REQUIRED_QUIET)
+        set(CMAKE_REQUIRED_QUIET 1)
+    endif()
 
-  string(MAKE_C_IDENTIFIER
-    check${option}_${lang}_${CMAKE_REQUIRED_FLAGS}
-    ${ok}
+    string(MAKE_C_IDENTIFIER
+        check${option}_${lang}_${CMAKE_REQUIRED_FLAGS}
+        ${ok}
     )
 
-  if(${lang} STREQUAL C)
-    check_c_compiler_flag("${option}" ${${ok}})
-  else()
-    check_cxx_compiler_flag("${option}" ${${ok}})
-  endif()
+    if(${lang} STREQUAL C)
+        check_c_compiler_flag("${option}" ${${ok}})
+    else()
+        check_cxx_compiler_flag("${option}" ${${ok}})
+    endif()
 
-  if(${${${ok}}})
-    set(ret 1)
-  else()
-    set(ret 0)
-  endif()
+    if(${${${ok}}})
+        set(ret 1)
+    else()
+        set(ret 0)
+    endif()
 
-  set(${ok} ${ret} PARENT_SCOPE)
+    set(${ok} ${ret} PARENT_SCOPE)
 endfunction()
 
 function(target_cc_option target scope option)
-  target_cc_option_fallback(${target} ${scope} ${option} "")
+    target_cc_option_fallback(${target} ${scope} ${option} "")
 endfunction()
 
 # Support an optional second option for when the first option is not
 # supported.
 function(target_cc_option_fallback target scope option1 option2)
-  if(CONFIG_CPLUSPLUS)
-    foreach(lang C CXX)
-      # For now, we assume that all flags that apply to C/CXX also
-      # apply to ASM.
-      zephyr_check_compiler_flag(${lang} ${option1} check)
-      if(${check})
-        target_compile_options(${target} ${scope}
-          $<$<COMPILE_LANGUAGE:${lang}>:${option1}>
-          $<$<COMPILE_LANGUAGE:ASM>:${option1}>
-          )
-      elseif(option2)
-        target_compile_options(${target} ${scope}
-          $<$<COMPILE_LANGUAGE:${lang}>:${option2}>
-          $<$<COMPILE_LANGUAGE:ASM>:${option2}>
-          )
-      endif()
-    endforeach()
-  else()
-    zephyr_check_compiler_flag(C ${option1} check)
-    if(${check})
-      target_compile_options(${target} ${scope} ${option1})
-    elseif(option2)
-      target_compile_options(${target} ${scope} ${option2})
+    if(CONFIG_CPLUSPLUS)
+        foreach(lang C CXX)
+            # For now, we assume that all flags that apply to C/CXX also
+            # apply to ASM.
+            zephyr_check_compiler_flag(${lang} ${option1} check)
+            if(${check})
+                target_compile_options(${target} ${scope}
+                    $<$<COMPILE_LANGUAGE:${lang}>:${option1}>
+                    $<$<COMPILE_LANGUAGE:ASM>:${option1}>
+                )
+            elseif(option2)
+                target_compile_options(${target} ${scope}
+                    $<$<COMPILE_LANGUAGE:${lang}>:${option2}>
+                    $<$<COMPILE_LANGUAGE:ASM>:${option2}>
+                )
+            endif()
+        endforeach()
+    else()
+        zephyr_check_compiler_flag(C ${option1} check)
+        if(${check})
+            target_compile_options(${target} ${scope} ${option1})
+        elseif(option2)
+            target_compile_options(${target} ${scope} ${option2})
+        endif()
     endif()
-  endif()
 endfunction()
 
 function(target_ld_options target scope)
-  foreach(option ${ARGN})
-    string(MAKE_C_IDENTIFIER check${option} check)
+    foreach(option ${ARGN})
+        string(MAKE_C_IDENTIFIER check${option} check)
 
-    set(SAVED_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
-    set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} ${option}")
-    zephyr_check_compiler_flag(C "" ${check})
-    set(CMAKE_REQUIRED_FLAGS ${SAVED_CMAKE_REQUIRED_FLAGS})
+        set(SAVED_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
+        set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} ${option}")
+        zephyr_check_compiler_flag(C "" ${check})
+        set(CMAKE_REQUIRED_FLAGS ${SAVED_CMAKE_REQUIRED_FLAGS})
 
-    target_link_libraries_ifdef(${check} ${target} ${scope} ${option})
-  endforeach()
+        target_link_libraries_ifdef(${check} ${target} ${scope} ${option})
+    endforeach()
 endfunction()
 
 # 3.4. Debugging CMake
 
 # Usage:
-#   print(BOARD)
+#     print(BOARD)
 #
 # will print: "BOARD: nrf52_pca10040"
 function(print arg)
-  message(STATUS "${arg}: ${${arg}}")
+    message(STATUS "${arg}: ${${arg}}")
 endfunction()
 
 # Usage:
-#   assert(ZEPHYR_TOOLCHAIN_VARIANT "ZEPHYR_TOOLCHAIN_VARIANT not set.")
+#     assert(ZEPHYR_TOOLCHAIN_VARIANT "ZEPHYR_TOOLCHAIN_VARIANT not set.")
 #
 # will cause a FATAL_ERROR and print an error message if the first
 # expression is false
 macro(assert test comment)
-  if(NOT ${test})
-    message(FATAL_ERROR "Assertion failed: ${comment}")
-  endif()
+    if(NOT ${test})
+        message(FATAL_ERROR "Assertion failed: ${comment}")
+    endif()
 endmacro()
 
 # Usage:
-#   assert_not(OBSOLETE_VAR "OBSOLETE_VAR has been removed; use NEW_VAR instead")
+#     assert_not(OBSOLETE_VAR "OBSOLETE_VAR has been removed; use NEW_VAR instead")
 #
 # will cause a FATAL_ERROR and print an error message if the first
 # expression is true
 macro(assert_not test comment)
-  if(${test})
-    message(FATAL_ERROR "Assertion failed: ${comment}")
-  endif()
+    if(${test})
+        message(FATAL_ERROR "Assertion failed: ${comment}")
+    endif()
 endmacro()
 
 # Usage:
-#   assert_exists(CMAKE_READELF)
+#     assert_exists(CMAKE_READELF)
 #
 # will cause a FATAL_ERROR if there is no file or directory behind the
 # variable
 macro(assert_exists var)
-  if(NOT EXISTS ${${var}})
-    message(FATAL_ERROR "No such file or directory: ${var}: '${${var}}'")
-  endif()
+    if(NOT EXISTS ${${var}})
+        message(FATAL_ERROR "No such file or directory: ${var}: '${${var}}'")
+    endif()
 endmacro()
