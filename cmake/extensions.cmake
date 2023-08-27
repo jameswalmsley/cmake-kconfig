@@ -12,6 +12,29 @@
 # 3.3. *_option compiler compatibility checks
 # 3.4. Debugging CMake
 
+# This function writes a dict to it's output parameter
+# 'return_dict'. The dict has information about the parsed arguments,
+#
+# Usage:
+#   get_parse_args(foo ${ARGN})
+#   print(foo_STRIP_PREFIX) # foo_STRIP_PREFIX might be set to 1
+function(get_parse_args return_dict)
+    foreach(x ${ARGN})
+        if(DEFINED single_argument)
+            set(${single_argument} ${x} PARENT_SCOPE)
+            unset(single_argument)
+        else()
+            if(x STREQUAL STRIP_PREFIX)
+                set(${return_dict}_STRIP_PREFIX 1 PARENT_SCOPE)
+            elseif(x STREQUAL NO_SPLIT)
+                set(${return_dict}_NO_SPLIT 1 PARENT_SCOPE)
+            elseif(x STREQUAL DELIMITER)
+                set(single_argument ${return_dict}_DELIMITER)
+            endif()
+        endif()
+    endforeach()
+endfunction()
+
 # 1.3 generate_inc_*
 
 # These functions are useful if there is a need to generate a file
@@ -396,15 +419,26 @@ function(target_cc_option_fallback target scope option1 option2)
 endfunction()
 
 function(target_ld_options target scope)
+    get_parse_args(args ${ARGN})
+    list(REMOVE_ITEM ARGN NO_SPLIT)
+
     foreach(option ${ARGN})
-        string(MAKE_C_IDENTIFIER check${option} check)
+        if(args_NO_SPLIT)
+            set(option ${ARGN})
+        endif()
+        string(JOIN "" check_identifier "check" ${option})
+        string(MAKE_C_IDENTIFIER ${check_identifier} check)
 
         set(SAVED_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
-        set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} ${option}")
+        string(JOIN " " CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} ${option})
         check_compiler_flag(C "" ${check})
         set(CMAKE_REQUIRED_FLAGS ${SAVED_CMAKE_REQUIRED_FLAGS})
 
         target_link_libraries_ifdef(${check} ${target} ${scope} ${option})
+
+        if(args_NO_SPLIT)
+            break()
+        endif()
     endforeach()
 endfunction()
 
