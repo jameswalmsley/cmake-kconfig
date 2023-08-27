@@ -14,18 +14,12 @@ set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${AUTOCONF_H})
 # conf/mconf needs to be run from a different directory because of: GH-3408
 file(MAKE_DIRECTORY ${AUTOCONF_DIR})
 
-if(KCONFIG_ROOT)
-    # KCONFIG_ROOT has either been specified as a CMake variable or is
-    # already in the CMakeCache.txt. This has precedence.
-elseif(EXISTS   ${APPLICATION_SOURCE_DIR}/Kconfig)
-    set(KCONFIG_ROOT ${APPLICATION_SOURCE_DIR}/Kconfig)
-else()
-    set(KCONFIG_ROOT ${ZEPHYR_BASE}/Kconfig)
-endif()
+set_ifndef(KCONFIG_ROOT         ${PROJECT_ROOT}/Kconfig)
+set_ifndef(BUILD_CONFIG_DIR     ${PROJECT_ROOT}/configs)
 
-set(BOARD_DEFCONFIG ${BOARD_DIR}/${BOARD}_defconfig)
-set(DOTCONFIG                  ${PROJECT_BINARY_DIR}/.config)
-set(PARSED_KCONFIG_SOURCES_TXT ${PROJECT_BINARY_DIR}/kconfig/sources.txt)
+set(BUILD_DEFCONFIG             ${BUILD_CONFIG_DIR}/${BUILD_CONFIG}_defconfig)
+set(DOTCONFIG                   ${PROJECT_BINARY_DIR}/.config)
+set(PARSED_KCONFIG_SOURCES_TXT  ${PROJECT_BINARY_DIR}/kconfig/sources.txt)
 
 if(CONF_FILE)
     string(REPLACE " " ";" CONF_FILE_AS_LIST "${CONF_FILE}")
@@ -34,12 +28,6 @@ endif()
 if(OVERLAY_CONFIG)
     string(REPLACE " " ";" OVERLAY_CONFIG_AS_LIST "${OVERLAY_CONFIG}")
 endif()
-
-# DTS_ROOT_BINDINGS is a semicolon separated list, this causes
-# problems when invoking kconfig_target since semicolon is a special
-# character in the C shell, so we make it into a question-mark
-# separated list instead.
-string(REPLACE ";" "?" DTS_ROOT_BINDINGS "${DTS_ROOT_BINDINGS}")
 
 set(ENV{srctree}            ${PROJECT_ROOT})
 set(ENV{KCONFIG_BASE}       ${PROJECT_ROOT})
@@ -50,7 +38,7 @@ set(ENV{PYTHON_EXECUTABLE}  ${PYTHON_EXECUTABLE})
 # Set environment variables so that Kconfig can prune Kconfig source
 # files for other architectures
 set(ENV{ARCH}      ${ARCH})
-set(ENV{BOARD_DIR} ${BOARD_DIR})
+set(ENV{BUILD_CONFIG_DIR} ${BUILD_CONFIG_DIR})
 set(ENV{SOC_DIR}   ${SOC_DIR})
 set(ENV{CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR})
 set(ENV{ARCH_DIR}   ${ARCH_DIR})
@@ -89,7 +77,7 @@ foreach(kconfig_target ${KCONFIG_TARGETS} ${EXTRA_KCONFIG_TARGETS})
         KCONFIG_BASE=${PROJECT_BASE}
         KCONFIG_CONFIG=${DOTCONFIG}
         ARCH=$ENV{ARCH}
-        BOARD_DIR=$ENV{BOARD_DIR}
+        BUILD_CONFIG_DIR=$ENV{BUILD_CONFIG_DIR}
         SOC_DIR=$ENV{SOC_DIR}
         CMAKE_BINARY_DIR=$ENV{CMAKE_BINARY_DIR}
         TOOLCHAIN_KCONFIG_DIR=${TOOLCHAIN_KCONFIG_DIR}
@@ -132,7 +120,7 @@ file(GLOB config_files ${APPLICATION_BINARY_DIR}/*.conf)
 list(SORT config_files)
 set(
     merge_config_files
-    ${BOARD_DEFCONFIG}
+    ${BUILD_DEFCONFIG}
     ${CONF_FILE_AS_LIST}
     ${OVERLAY_CONFIG_AS_LIST}
     ${EXTRA_KCONFIG_OPTIONS_FILE}

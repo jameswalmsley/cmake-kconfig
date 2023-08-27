@@ -209,7 +209,6 @@ def init_kconfig():
         KCONFIG_BASE=TOP_DIR,
         SOC_DIR="soc",
         ARCH_DIR="arch",
-        BOARD_DIR="boards/*/*",
         ARCH="*")
 
     kconf = kconfiglib.Kconfig(suppress_traceback=True)
