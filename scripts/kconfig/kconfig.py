@@ -6,11 +6,11 @@
 
 # SPDX-License-Identifier: ISC
 
-# Writes/updates the zephyr/.config configuration file by merging configuration
+# Writes/updates the build/.config configuration file by merging configuration
 # files passed as arguments, e.g. board *_defconfig and application prj.conf
 # files.
 #
-# When fragments haven't changed, zephyr/.config is both the input and the
+# When fragments haven't changed, build/.config is both the input and the
 # output, which just updates it. This is handled in the CMake files.
 #
 # Also does various checks (most via Kconfiglib warnings).
@@ -68,7 +68,7 @@ def main():
         # have no effect.
         #
         # This only makes sense when loading handwritten fragments and not when
-        # loading zephyr/.config, because zephyr/.config is configuration
+        # loading build/.config, because build/.config is configuration
         # output and also assigns promptless symbols.
         check_no_promptless_assign(kconf)
 
@@ -231,10 +231,8 @@ up as the choice selection. """ + SYM_INFO_HINT.format(choice.user_selection))
 # Hint on where to find symbol information. Used like
 # SYM_INFO_HINT.format(sym).
 SYM_INFO_HINT = """\
-See http://docs.zephyrproject.org/latest/kconfig.html#CONFIG_{0.name} and/or
-look up {0.name} in the menuconfig/guiconfig interface. The Application
-Development Primer, Setting Configuration Values, and Kconfig - Tips and Best
-Practices sections of the manual might be helpful too.\
+You can look up {0.name} in the menuconfig/guiconfig interface. 
+Check Tips and Best Practices sections of the manual might be helpful too.\
 """
 
 
