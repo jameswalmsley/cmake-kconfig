@@ -14,3 +14,13 @@ include(kconfig)
 if(CONFIG_TEST_OPTION)
     message("Config test_option enabled")
 endif()
+
+if(CONFIG_TEST_1)
+    add_executable(test1 test1.cpp)
+    target_include_directories(test1 PUBLIC ${AUTOCONF_DIR})
+endif()
+
+if(CONFIG_TEST_2)
+    add_executable(test2 test2.cpp)
+    target_include_directories(test2 PUBLIC ${AUTOCONF_DIR})
+endif()
