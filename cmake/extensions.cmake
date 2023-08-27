@@ -264,11 +264,59 @@ function(set_ifndef variable value)
     endif()
 endfunction()
 
+function(add_subdirectory_ifndef feature_toggle source_dir)
+    if(NOT ${feature_toggle})
+        add_subdirectory(${source_dir} ${ARGN})
+    endif()
+endfunction()
+
+function(target_sources_ifndef feature_toggle target scope item)
+    if(NOT ${feature_toggle})
+        target_sources(${target} ${scope} ${item} ${ARGN})
+    endif()
+endfunction()
+
+function(target_compile_definitions_ifndef feature_toggle target scope item)
+    if(NOT ${feature_toggle})
+        target_compile_definitions(${target} ${scope} ${item} ${ARGN})
+    endif()
+endfunction()
+
+function(target_include_directories_ifndef feature_toggle target scope item)
+    if(NOT ${feature_toggle})
+        target_include_directories(${target} ${scope} ${item} ${ARGN})
+    endif()
+endfunction()
+
+function(target_link_libraries_ifndef feature_toggle target item)
+    if(NOT ${feature_toggle})
+        target_link_libraries(${target} ${item} ${ARGN})
+    endif()
+endfunction()
+
+function(add_compile_option_ifndef feature_toggle option)
+    if(NOT ${feature_toggle})
+        add_compile_options(${option})
+    endif()
+endfunction()
+
+function(target_compile_option_ifndef feature_toggle target scope option)
+    if(NOT ${feature_toggle})
+        target_compile_options(${target} ${scope} ${option})
+    endif()
+endfunction()
+
 function(target_cc_option_ifndef feature_toggle target scope option)
     if(NOT ${feature_toggle})
         target_cc_option(${target} ${scope} ${option})
     endif()
 endfunction()
+
+macro(list_append_ifndef feature_toggle list)
+    if(NOT ${feature_toggle})
+        list(APPEND ${list} ${ARGN})
+    endif()
+endmacro()
 
 # 3.3. *_option Compiler-compatibility checks
 #
