@@ -24,10 +24,6 @@
 # Functions for conditionally including directories and source files
 # that have matching KConfig values.
 #
-# zephyr_library_sources_if_kconfig(fft.c)
-# is the same as
-# zephyr_library_sources_ifdef(CONFIG_FFT fft.c)
-#
 # add_subdirectory_if_kconfig(serial)
 # is the same as
 # add_subdirectory_ifdef(CONFIG_SERIAL serial)
@@ -40,18 +36,6 @@ function(target_sources_if_kconfig target scope item)
     get_filename_component(item_basename ${item} NAME_WE)
     string(TOUPPER CONFIG_${item_basename} UPPER_CASE_CONFIG)
     target_sources_ifdef(${UPPER_CASE_CONFIG} ${target} ${scope} ${item})
-endfunction()
-
-function(zephyr_library_sources_if_kconfig item)
-    get_filename_component(item_basename ${item} NAME_WE)
-    string(TOUPPER CONFIG_${item_basename} UPPER_CASE_CONFIG)
-    zephyr_library_sources_ifdef(${UPPER_CASE_CONFIG} ${item})
-endfunction()
-
-function(zephyr_sources_if_kconfig item)
-    get_filename_component(item_basename ${item} NAME_WE)
-    string(TOUPPER CONFIG_${item_basename} UPPER_CASE_CONFIG)
-    zephyr_sources_ifdef(${UPPER_CASE_CONFIG} ${item})
 endfunction()
 
 # 2.2 Misc
@@ -101,31 +85,14 @@ endfunction()
 # 3. CMake-generic extensions
 ########################################################
 #
-# These functions extend the CMake API in a way that is not particular
-# to Zephyr. Primarily they work around limitations in the CMake
+# These functions extend the CMake API.
+# Primarily they work around limitations in the CMake
 # language to allow cleaner build scripts.
 
 # 3.1. *_ifdef
 #
 # Functions for conditionally executing CMake functions with oneliners
 # e.g.
-#
-# if(CONFIG_FFT)
-#     zephyr_library_source(
-#         fft_32.c
-#         fft_utils.c
-#         )
-# endif()
-#
-# Becomes
-#
-# zephyr_source_ifdef(
-#     CONFIG_FFT
-#     fft_32.c
-#     fft_utils.c
-#     )
-#
-# More Generally
 # "<function-name>_ifdef(CONDITION args)"
 # Becomes
 # """
@@ -259,7 +226,7 @@ function(target_cc_option_fallback target scope option1 option2)
         foreach(lang C CXX)
             # For now, we assume that all flags that apply to C/CXX also
             # apply to ASM.
-            zephyr_check_compiler_flag(${lang} ${option1} check)
+            check_compiler_flag(${lang} ${option1} check)
             if(${check})
                 target_compile_options(${target} ${scope}
                     $<$<COMPILE_LANGUAGE:${lang}>:${option1}>
@@ -273,7 +240,7 @@ function(target_cc_option_fallback target scope option1 option2)
             endif()
         endforeach()
     else()
-        zephyr_check_compiler_flag(C ${option1} check)
+        check_compiler_flag(C ${option1} check)
         if(${check})
             target_compile_options(${target} ${scope} ${option1})
         elseif(option2)
@@ -288,7 +255,7 @@ function(target_ld_options target scope)
 
         set(SAVED_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
         set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} ${option}")
-        zephyr_check_compiler_flag(C "" ${check})
+        check_compiler_flag(C "" ${check})
         set(CMAKE_REQUIRED_FLAGS ${SAVED_CMAKE_REQUIRED_FLAGS})
 
         target_link_libraries_ifdef(${check} ${target} ${scope} ${option})
@@ -306,7 +273,7 @@ function(print arg)
 endfunction()
 
 # Usage:
-#     assert(ZEPHYR_TOOLCHAIN_VARIANT "ZEPHYR_TOOLCHAIN_VARIANT not set.")
+#     assert(TOOLCHAIN_VARIANT "TOOLCHAIN_VARIANT not set.")
 #
 # will cause a FATAL_ERROR and print an error message if the first
 # expression is false
