@@ -16,33 +16,36 @@ file(MAKE_DIRECTORY ${AUTOCONF_DIR})
 
 set_ifndef(KCONFIG_ROOT         ${PROJECT_ROOT}/Kconfig)
 set_ifndef(BUILD_CONFIG_DIR     ${PROJECT_ROOT}/configs)
+set_ifndef(KCONFIG_SCRIPTS_DIR  ${PROJECT_ROOT}/scripts/kconfig)
 
 set(BUILD_DEFCONFIG             ${BUILD_CONFIG_DIR}/${BUILD_CONFIG}_defconfig)
 set(DOTCONFIG                   ${PROJECT_BINARY_DIR}/.config)
 set(PARSED_KCONFIG_SOURCES_TXT  ${PROJECT_BINARY_DIR}/kconfig/sources.txt)
 
 if(CONF_FILE)
-    string(REPLACE " " ";" CONF_FILE_AS_LIST "${CONF_FILE}")
+    string(CONFIGURE "${CONF_FILE}" CONF_FILE_EXPANDED)
+    string(REPLACE " " ";" CONF_FILE_AS_LIST "${CONF_FILE_EXPANDED}")
 endif()
 
 if(OVERLAY_CONFIG)
-    string(REPLACE " " ";" OVERLAY_CONFIG_AS_LIST "${OVERLAY_CONFIG}")
+    string(CONFIGURE "${EXTRA_CONF_FILE}" EXTRA_CONF_FILE_EXPANDED)
+    string(REPLACE " " ";" EXTRA_CONF_FILE_AS_LIST "${EXTRA_CONF_FILE_EXPANDED}")
 endif()
 
-set(ENV{srctree}            ${PROJECT_ROOT})
-set(ENV{KCONFIG_BASE}       ${PROJECT_ROOT})
-set(ENV{KERNELVERSION}      ${KERNELVERSION})
-set(ENV{KCONFIG_CONFIG}     ${DOTCONFIG})
-set(ENV{PYTHON_EXECUTABLE}  ${PYTHON_EXECUTABLE})
-
-# Set environment variables so that Kconfig can prune Kconfig source
-# files for other architectures
-set(ENV{ARCH}      ${ARCH})
-set(ENV{BUILD_CONFIG_DIR} ${BUILD_CONFIG_DIR})
-set(ENV{SOC_DIR}   ${SOC_DIR})
-set(ENV{CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR})
-set(ENV{ARCH_DIR}   ${ARCH_DIR})
-set(ENV{TOOLCHAIN_KCONFIG_DIR} "${TOOLCHAIN_KCONFIG_DIR}")
+set(COMMON_KCONFIG_ENV_SETTINGS
+    PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
+    srctree=${PROJECT_ROOT}
+    KERNELVERSION=${KERNELVERSION}
+    KCONFIG_CONFIG=${DOTCONFIG}
+    KCONFIG_BASE=${PROJECT_ROOT}
+    # Set environment variables so that Kconfig can prune Kconfig source
+    # files for other architectures
+    ARCH=${ARCH}
+    ARCH_DIR=${ARCH_DIR}
+    SOC_DIR=${SOC_DIR}
+    BUILD_CONFIG_DIR=${BUILD_CONFIG_DIR}
+    CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}
+)
 
 # Allow out-of-tree users to add their own Kconfig python frontend
 # targets by appending targets to the CMake list
@@ -54,15 +57,15 @@ set(ENV{TOOLCHAIN_KCONFIG_DIR} "${TOOLCHAIN_KCONFIG_DIR}")
 # -DEXTRA_KCONFIG_TARGET_COMMAND_FOR_cli=cli_kconfig_frontend.py
 
 set(EXTRA_KCONFIG_TARGET_COMMAND_FOR_menuconfig
-    ${PROJECT_ROOT}/scripts/kconfig/menuconfig.py
+    ${KCONFIG_SCRIPTS_DIR}/menuconfig.py
 )
 
 set(EXTRA_KCONFIG_TARGET_COMMAND_FOR_guiconfig
-    ${PROJECT_ROOT}/scripts/kconfig/guiconfig.py
+    ${KCONFIG_SCRIPTS_DIR}/guiconfig.py
 )
 
 set(EXTRA_KCONFIG_TARGET_COMMAND_FOR_hardenconfig
-    ${PROJECT_ROOT}/scripts/kconfig/hardenconfig.py
+    ${KCONFIG_SCRIPTS_DIR}/hardenconfig.py
 )
 
 set_ifndef(KCONFIG_TARGETS menuconfig guiconfig hardenconfig)
@@ -71,17 +74,7 @@ foreach(kconfig_target ${KCONFIG_TARGETS} ${EXTRA_KCONFIG_TARGETS})
     add_custom_target(
         ${kconfig_target}
         ${CMAKE_COMMAND} -E env
-        PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
-        srctree=${ZEPHYR_BASE}
-        KERNELVERSION=${KERNELVERSION}
-        KCONFIG_BASE=${PROJECT_BASE}
-        KCONFIG_CONFIG=${DOTCONFIG}
-        ARCH=$ENV{ARCH}
-        BUILD_CONFIG_DIR=$ENV{BUILD_CONFIG_DIR}
-        SOC_DIR=$ENV{SOC_DIR}
-        CMAKE_BINARY_DIR=$ENV{CMAKE_BINARY_DIR}
-        TOOLCHAIN_KCONFIG_DIR=${TOOLCHAIN_KCONFIG_DIR}
-        ARCH_DIR=$ENV{ARCH_DIR}
+        ${COMMON_KCONFIG_ENV_SETTINGS}
         ${PYTHON_EXECUTABLE}
         ${EXTRA_KCONFIG_TARGET_COMMAND_FOR_${kconfig_target}}
         ${KCONFIG_ROOT}
@@ -173,7 +166,7 @@ if(EXISTS ${DOTCONFIG} AND EXISTS ${merge_config_files_checksum_file})
 endif()
 
 if(CREATE_NEW_DOTCONFIG)
-    set(input_configs_are_handwritten --handwritten-input-configs)
+    set(input_configs_flags --handwritten-input-configs)
     set(input_configs ${merge_config_files})
 else()
     set(input_configs ${DOTCONFIG})
@@ -181,10 +174,11 @@ endif()
 
 
 execute_process(
-    COMMAND
+    COMMAND ${CMAKE_COMMAND} -E env
+    ${COMMON_KCONFIG_ENV_SETTINGS}
     ${PYTHON_EXECUTABLE}
-    ${PROJECT_ROOT}/scripts/kconfig/kconfig.py
-    ${input_configs_are_handwritten}
+    ${KCONFIG_SCRIPTS_DIR}/kconfig.py
+    ${input_configs_flags}
     ${KCONFIG_ROOT}
     ${DOTCONFIG}
     ${AUTOCONF_H}
@@ -204,7 +198,7 @@ if(CREATE_NEW_DOTCONFIG)
     # succeeds, to avoid marking zephyr/.config as up-to-date when it hasn't been
     # regenerated.
     file(WRITE ${merge_config_files_checksum_file}
-             ${merge_config_files_checksum})
+               ${merge_config_files_checksum})
 endif()
 
 # Read out the list of 'Kconfig' sources that were used by the engine.
