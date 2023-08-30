@@ -109,7 +109,7 @@ endif()
 
 # Bring in extra configuration files dropped in by the user or anyone else;
 # make sure they are set at the end so we can override any other setting
-file(GLOB config_files ${APPLICATION_BINARY_DIR}/*.conf)
+file(GLOB config_files ${PROJECT_BINARY_DIR}/*.conf)
 list(SORT config_files)
 set(
     merge_config_files
@@ -127,7 +127,7 @@ foreach(f ${merge_config_files})
     if(IS_ABSOLUTE ${f})
         set(path ${f})
     else()
-        set(path ${APPLICATION_SOURCE_DIR}/${f})
+        set(path ${PROJECT_ROOT}/${f})
     endif()
 
     list(APPEND merge_config_files_with_absolute_paths ${path})
