@@ -10,6 +10,7 @@ jobs:
     strategy:
       matrix:
         compiler: [ { cpp: g++, c: gcc}, { cpp: clang++, c: clang } ]
+        builder: [ { generator: "" }, { generator: "-GNinja"} ]
 
     runs-on: ubuntu-latest
 
@@ -22,13 +23,18 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Install Ninja
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install ninja-build
+
       - name: Configure CMake
         working-directory: ${{github.workspace}}
         shell: bash
         env:
           CC: ${{ matrix.compiler.c }}
           CXX: ${{ matrix.compiler.cpp }}
-        run: cmake -B build -DBUILD_CONFIG=test
+        run: cmake -B build -DBUILD_CONFIG=test ${{ matrix.builder.generator }}
 
       - name: Build
         working-directory: ${{github.workspace}}
