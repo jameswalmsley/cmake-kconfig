@@ -93,12 +93,23 @@ endforeach()
 unset(EXTRA_KCONFIG_OPTIONS)
 get_cmake_property(cache_variable_names CACHE_VARIABLES)
 foreach (name ${cache_variable_names})
-    if("${name}" MATCHES "^CONFIG_")
-        # When a cache variable starts with 'CONFIG_', it is assumed to be
-        # a Kconfig symbol assignment from the CMake command line.
+    if("${name}" MATCHES "^CLI_CONFIG_")
+        # Variable was set by user in earlier invocation, let's append to extra
+        # config unless a new value has been given.
+        string(REGEX REPLACE "^CLI_" "" org_name ${name})
+        if(NOT DEFINED ${org_name})
+            set(EXTRA_KCONFIG_OPTIONS
+                "${EXTRA_KCONFIG_OPTIONS}\n${org_name}=${${name}}"
+            )
+        endif()
+    elseif("${name}" MATCHES "^CONFIG_")
+        # When a cache variable starts with the 'CONFIG' value, it is
+        # assumed to be a Kconfig symbol assignment from the CMake command line.
         set(EXTRA_KCONFIG_OPTIONS
             "${EXTRA_KCONFIG_OPTIONS}\n${name}=${${name}}"
         )
+        set(CLI_${name} "${${name}}")
+        list(APPEND cli_config_list ${name})
     endif()
 endforeach()
 
@@ -217,21 +228,19 @@ add_custom_target(config-sanitycheck DEPENDS ${DOTCONFIG})
 # Remove the CLI Kconfig symbols from the namespace and
 # CMakeCache.txt. If the symbols end up in DOTCONFIG they will be
 # re-introduced to the namespace through 'import_kconfig'.
-foreach (name ${cache_variable_names})
-    if("${name}" MATCHES "^CONFIG_")
-        unset(${name})
-        unset(${name} CACHE)
-    endif()
+foreach (name ${cli_config_list})
+    unset(${name})
+    unset(${name} CACHE)
 endforeach()
 
 # Parse the lines prefixed with CONFIG_ in the .config file from Kconfig
 import_kconfig(CONFIG_ ${DOTCONFIG})
 
 # Re-introduce the CLI Kconfig symbols that survived
-foreach (name ${cache_variable_names})
-    if("${name}" MATCHES "^CONFIG_")
-        if(DEFINED ${name})
-            set(${name} ${${name}} CACHE STRING "")
-        endif()
+foreach (name ${cli_config_list})
+    if(DEFINED ${name})
+        set(CLI_${name} ${CLI_${name}} CACHE INTERNAL "")
+    else()
+        unset(CLI_${name} CACHE)
     endif()
 endforeach()
