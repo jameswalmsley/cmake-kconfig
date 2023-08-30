@@ -1,16 +1,17 @@
 # cmake-kconfig
 
-Minimal cmake project with kconfig integration adapted from Zephyr.
+Minimal cmake project with Kconfig integration adapted from Zephyr.
+
+All Zephyr-related stuff was removed and adopted to be used in standalone projects.
 
 # Example
 
 Default build using a provided configurations called `test`.
 
-```
-mkdir build
-cd build
-cmake -GNinja -DBOARD=test ..
-ninja
+```bash
+cmake -B build -DBUILD_CONFIG=test -GNinja
+cmake --build build
+./build/test1
 ```
 
 Note the above uses the config provided by:
@@ -20,8 +21,8 @@ configs/test_defconfig
 
 Updating the configuration:
 
-```
-ninja menuconfig
+```bash
+ninja -C build menuconfig
 ```
 
 This will bring up an interactive menu to turn options on/off and it will
@@ -30,23 +31,28 @@ save a .config file in the build directory.
 The test_defconfig can be updated by copying the build/.config file to
 configs/test_defconfig and committing.
 
-Before any targets are built an autoconf.h header file is generated under:
+Before any targets are built an autoconf.h header file is generated in `${AUTOCONF_DIR}`:
 
 ```
 build/kconfig/include/generate/autoconf.h
 ```
 
-This is allows everything to have a common configuration.
+This allows everything to have a common configuration.
+
+Auto-generated `autoconf.h` resides in `${AUTOCONF_DIR}`, add it to your target's include search path:
+```CMake
+target_include_directories(your_target PUBLIC ${AUTOCONF_DIR})
+```
 
 ## Cmake
-```
+```CMake
 if(CONFIG_TEST_OPTION)
     message("Config test_option is enabled")
 endif()
 ```
 
 ## Make
-```
+```Makefile
 -include build/.config
 
 ifeq ($(CONFIG_TEST_OPTION),y)
@@ -56,7 +62,7 @@ endif
 
 ## C/C++ ...
 
-```
+```cpp
 #include <autoconf.h>
 
 #ifdef CONFIG_TEST_OPTION
