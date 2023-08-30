@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
+include_guard(GLOBAL)
+
 ########################################################
 # Table of contents
 ########################################################
