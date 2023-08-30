@@ -1,0 +1,41 @@
+name: build and test
+
+on: [push]
+
+env:
+  BUILD_TYPE: Debug
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        compiler: [ { cpp: g++, c: gcc}, { cpp: clang++, c: clang } ]
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Configure CMake
+        working-directory: ${{github.workspace}}
+        shell: bash
+        env:
+          CC: ${{ matrix.compiler.c }}
+          CXX: ${{ matrix.compiler.cpp }}
+        run: cmake -B build -DBUILD_CONFIG=test
+
+      - name: Build
+        working-directory: ${{github.workspace}}
+        shell: bash
+        run: cmake --build build -j4
+
+      - name: Run
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: ./test1
