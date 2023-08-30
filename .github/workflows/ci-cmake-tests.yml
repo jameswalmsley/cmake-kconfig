@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         compiler: [ { cpp: g++, c: gcc}, { cpp: clang++, c: clang } ]
-        builder: [ { generator: "" }, { generator: "-GNinja"} ]
+        builder: [ { generator: '' }, { generator: '-GNinja' } ]
 
     runs-on: ubuntu-latest
 
@@ -24,6 +24,7 @@ jobs:
           submodules: recursive
 
       - name: Install Ninja
+        if: matrix.builder.generator == '-GNinja'
         run: |
           sudo apt-get update -y
           sudo apt-get install ninja-build
