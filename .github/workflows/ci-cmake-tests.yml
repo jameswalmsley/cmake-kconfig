@@ -1,0 +1,48 @@
+name: build and test
+
+on: [push]
+
+env:
+  BUILD_TYPE: Debug
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        compiler: [ { cpp: g++, c: gcc}, { cpp: clang++, c: clang } ]
+        builder: [ { generator: '' }, { generator: '-GNinja' } ]
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Ninja
+        if: matrix.builder.generator == '-GNinja'
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install ninja-build
+
+      - name: Configure CMake
+        working-directory: ${{github.workspace}}
+        shell: bash
+        env:
+          CC: ${{ matrix.compiler.c }}
+          CXX: ${{ matrix.compiler.cpp }}
+        run: cmake -B build -DBUILD_CONFIG=test ${{ matrix.builder.generator }}
+
+      - name: Build
+        working-directory: ${{github.workspace}}
+        shell: bash
+        run: cmake --build build -j4
+
+      - name: Run
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: ./test1

@@ -56,7 +56,7 @@ def parse_args():
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawTextHelpFormatter,
-        description=__doc__)
+        description=__doc__, allow_abbrev=False)
 
     parser.add_argument(
         "-n", "--check-always-n",
@@ -209,7 +209,6 @@ def init_kconfig():
         KCONFIG_BASE=TOP_DIR,
         SOC_DIR="soc",
         ARCH_DIR="arch",
-        BOARD_DIR="boards/*/*",
         ARCH="*")
 
     kconf = kconfiglib.Kconfig(suppress_traceback=True)
