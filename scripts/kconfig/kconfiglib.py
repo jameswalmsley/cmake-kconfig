@@ -1545,8 +1545,7 @@ class Kconfig(object):
           written.
 
           Errors are silently ignored if <filename>.old cannot be written (e.g.
-          due to being a directory, or <filename> being something like
-          /dev/null).
+          due to permissions errors).
 
         verbose (default: None):
           Limited backwards compatibility to prevent crashes. A warning is
@@ -6203,14 +6202,14 @@ def standard_kconfig(description=None):
     Exits with sys.exit() (which raises SystemExit) on errors.
 
     description (default: None):
-      The 'description' passed to argparse.ArgumentParser().
+      The 'description' passed to argparse.ArgumentParser(allow_abbrev=False).
       argparse.RawDescriptionHelpFormatter is used, so formatting is preserved.
     """
     import argparse
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=description)
+        description=description, allow_abbrev=False)
 
     parser.add_argument(
         "kconfig",
@@ -6392,6 +6391,12 @@ def _touch_dep_file(path, sym_name):
 def _save_old(path):
     # See write_config()
 
+    if not os.path.isfile(path):
+        # Backup only files (and symlinks to files). Simplest alternative
+        # to avoid e.g. (potentially successful attempt to) rename /dev/null
+        # (and to keep fifos).
+        return
+
     def copy(src, dst):
         # Import as needed, to save some startup time
         import shutil
@@ -6416,8 +6421,7 @@ def _save_old(path):
     except Exception:
         # Ignore errors from 'path' missing as well as other errors.
         # <filename>.old file is usually more of a nice-to-have, and not worth
-        # erroring out over e.g. if <filename>.old happens to be a directory or
-        # <filename> is something like /dev/null.
+        # erroring out over e.g. if <filename>.old happens to be a directory.
         pass
 
 

@@ -5,4 +5,18 @@ config TEST_OPTION
     help
         Test option description
 
+config TEST_1
+    bool "Test1 Option"
+    help
+        Test1 option description
 
+config TEST_2
+    bool "Test2 Option"
+    help
+        Test2 option description
+
+config STR_ID
+    string "Test ID STR"
+    default "MyIDStr"
+    help
+        Test ID String

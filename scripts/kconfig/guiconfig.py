@@ -60,6 +60,7 @@ $srctree is supported through Kconfiglib.
 
 import errno
 import os
+import re
 import sys
 
 _PY2 = sys.version_info[0] < 3
@@ -589,7 +590,7 @@ def _create_kconfig_desc(parent):
 
     frame = ttk.Frame(parent)
 
-    desc = Text(frame, height=12, wrap="none", borderwidth=0,
+    desc = Text(frame, height=12, wrap="word", borderwidth=0,
                 state="disabled")
     desc.grid(column=0, row=0, sticky="nsew")
 
